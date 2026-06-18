@@ -154,6 +154,7 @@ To use the Python ads service, replace the `ads` definition with the following i
     image: ghcr.io/datadog/storedog/ads-python:${STOREDOG_IMAGE_VERSION:-latest}
     build: # Only used if building from source in development
       context: ./services/ads/python
+    command: wait-for-it postgres:5432 -- ddtrace-run flask run --port=3030 --host=0.0.0.0
     depends_on:
       - postgres
       - dd-agent
@@ -217,6 +218,10 @@ spec:
         - name: apmsocketpath
           hostPath:
             path: /var/run/datadog/
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.37.0
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
       containers:
         - name: ads
           image: ${REGISTRY_URL}/ads-python:${SD_TAG}
