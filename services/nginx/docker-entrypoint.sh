@@ -28,8 +28,27 @@ fi
 export ADS_SERVICE_B_BLOCK
 export UPSTREAM_CONFIG
 
+# Build the SSL listen block based on ENABLE_SSL
+ENABLE_SSL=${ENABLE_SSL:-false}
+
+if [ "$ENABLE_SSL" = "true" ]; then
+    CERT_FILE=/etc/nginx/certs/cert.pem
+    KEY_FILE=/etc/nginx/certs/key.pem
+    if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
+        echo "ERROR: ENABLE_SSL=true but $CERT_FILE and/or $KEY_FILE not found. Mount a certificate and key into /etc/nginx/certs, or set ENABLE_SSL=false." >&2
+        exit 1
+    fi
+    SSL_LISTEN_BLOCK="listen 443 ssl;
+    ssl_certificate     ${CERT_FILE};
+    ssl_certificate_key ${KEY_FILE};"
+else
+    SSL_LISTEN_BLOCK=""
+fi
+
+export SSL_LISTEN_BLOCK
+
 # Substitute all relevant variables in the template and output the final config
-envsubst '$NGINX_RESOLVER $ADS_A_UPSTREAM $ADS_B_UPSTREAM $UPSTREAM_CONFIG $ADS_SERVICE_B_BLOCK' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '$NGINX_RESOLVER $ADS_A_UPSTREAM $ADS_B_UPSTREAM $UPSTREAM_CONFIG $ADS_SERVICE_B_BLOCK $SSL_LISTEN_BLOCK' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Start NGINX in the foreground
 exec nginx -g 'daemon off;'
