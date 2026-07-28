@@ -51,10 +51,6 @@ spec:
         - name: apmsocketpath
           hostPath:
             path: /var/run/datadog/
-        - name: sslcerts
-          hostPath:
-            path: /etc/storedog/certs
-            type: Directory
       containers:
         - name: service-proxy
           image: ${REGISTRY_URL}/nginx:${SD_TAG}
@@ -87,6 +83,3 @@ spec:
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog
-            - name: sslcerts
-              mountPath: /etc/nginx/certs
-              readOnly: true
