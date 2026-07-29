@@ -23,6 +23,11 @@ environment:
 
 The service-proxy can terminate its own TLS on port `443`, gated by the `ENABLE_SSL` environment variable. This is needed when a lab exposes Storedog through Instruqt's external ingress (`*.instruqt.io`) rather than the learner proxy (`*.env.play.instruqt.com`), since external ingress does not include Instruqt-provided HTTPS termination. For more information, see the [README.md](../../README.md#enable-ssltls-on-the-service-proxy) file in the root of this repo.
 
+Situations where a lab typically needs this:
+- Datadog Synthetic browser tests, which need a valid HTTPS URL to run reliably against the lab
+- Demonstrating browser features that require a secure context (for example, Service Workers or WebAuthn)
+- A lab where an external service needs a stable public URL to call back into Storedog (for example, webhooks), rather than Instruqt's session-scoped learner proxy
+
 > [!IMPORTANT]
 > When `ENABLE_SSL=true`, the container looks for a certificate and key at `/etc/nginx/certs/cert.pem` and `/etc/nginx/certs/key.pem`. If they aren't already mounted there, [docker-entrypoint.sh](./docker-entrypoint.sh) tries to download them from GCP instance metadata (the `ssl-certificate`/`ssl-certificate-key` attributes Instruqt provisions). If neither source has a cert/key, the service-proxy exits with an error on startup.
 
