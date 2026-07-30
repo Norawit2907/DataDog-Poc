@@ -51,6 +51,7 @@ services:
       - NEXT_PUBLIC_DD_SITE=${NEXT_PUBLIC_DD_SITE:-datadoghq.com}
       - NEXT_PUBLIC_DD_SERVICE_FRONTEND=store-frontend # used for client-side Next.js RUM configuration
       - NEXT_PUBLIC_DD_ENV=${DD_ENV:-development}
+      - NEXT_PUBLIC_DD_VERSION_FRONTEND=${NEXT_PUBLIC_DD_VERSION_FRONTEND:-1.0.0}
       - NEXT_PUBLIC_ADS_ROUTE=${NEXT_PUBLIC_ADS_ROUTE:-/services/ads}
       - NEXT_PUBLIC_DISCOUNTS_ROUTE=${NEXT_PUBLIC_DISCOUNTS_ROUTE:-/services/discounts}
       - NEXT_PUBLIC_DBM_ROUTE=${NEXT_PUBLIC_DBM_ROUTE:-/services/dbm}
