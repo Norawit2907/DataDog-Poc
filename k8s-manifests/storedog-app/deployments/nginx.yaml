@@ -20,6 +20,9 @@ metadata:
     team: edge
     tags.datadoghq.com/service: service-proxy
     tags.datadoghq.com/version: ${DD_VERSION_NGINX}
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   replicas: 1
   selector:
@@ -34,13 +37,11 @@ spec:
         tags.datadoghq.com/version: ${DD_VERSION_NGINX}
       annotations:
         ad.datadoghq.com/service-proxy.logs: '[{"source": "nginx"}]'
-        ad.datadoghq.com/service-proxy.checks: |
-          {
-            "nginx": {
-              "init_config": {},
-              "instances": [{"nginx_status_url": "http://%%host%%:81/nginx_status/"}]
-            }
-          }
+        ad.datadoghq.com/service-proxy.checks: "{\n  \"nginx\": {\n    \"init_config\"\
+          : {},\n    \"instances\": [{\"nginx_status_url\": \"http://%%host%%:81/nginx_status/\"\
+          }]\n  }\n}\n"
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -55,7 +56,7 @@ spec:
             - containerPort: 80
           env:
             - name: NGINX_RESOLVER
-              value: "kube-dns.kube-system.svc.cluster.local"
+              value: kube-dns.kube-system.svc.cluster.local
             - name: DD_ENV
               valueFrom:
                 configMapKeyRef:
@@ -66,20 +67,20 @@ spec:
             - name: DD_VERSION
               value: ${DD_VERSION_NGINX}
             - name: DD_TRACE_AGENT_URL
-              value: 'unix:///var/run/datadog/apm.socket'
+              value: unix:///var/run/datadog/apm.socket
             - name: ADS_A_UPSTREAM
-              value: "ads:3030"
+              value: ads:3030
             - name: ADS_B_UPSTREAM
-              value: "ads-python:3030"
+              value: ads-python:3030
             - name: ADS_B_PERCENT
-              value: "50"
+              value: '50'
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: 128Mi
+              cpu: 100m
             limits:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: 256Mi
+              cpu: 200m
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog

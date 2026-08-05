@@ -5,6 +5,9 @@ metadata:
   labels:
     app: store-worker
     team: backend
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   replicas: 1
   selector:
@@ -16,7 +19,10 @@ spec:
         app: store-worker
         team: backend
       annotations:
-        ad.datadoghq.com/worker.logs: '[{"source": "ruby", "auto_multi_line_detection": true}]'
+        ad.datadoghq.com/worker.logs: '[{"source": "ruby", "auto_multi_line_detection":
+          true}]'
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       volumes:
         - name: apmsocketpath
@@ -25,14 +31,22 @@ spec:
       initContainers:
         - name: wait-for-db
           image: busybox:1.37.0
-          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+          command:
+            - sh
+            - -c
+            - until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;
       containers:
         - name: worker
           image: ${REGISTRY_URL}/backend:${SD_TAG}
-          command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+          command:
+            - bundle
+            - exec
+            - sidekiq
+            - -C
+            - config/sidekiq.yml
           env:
             - name: WORKER
-              value: "true"
+              value: 'true'
             - name: REDIS_URL
               valueFrom:
                 configMapKeyRef:
@@ -78,20 +92,20 @@ spec:
             - name: DD_VERSION
               value: ${DD_VERSION_BACKEND}
             - name: DD_RUNTIME_METRICS_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ALLOCATION_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_TIMELINE_ENABLED
-              value: "true"
+              value: 'true'
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: 512Mi
+              cpu: 250m
             limits:
-              memory: "2Gi"
-              cpu: "1000m"
+              memory: 2Gi
+              cpu: 1000m
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog

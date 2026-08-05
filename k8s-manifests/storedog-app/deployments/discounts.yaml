@@ -17,6 +17,9 @@ metadata:
   labels:
     app: store-discounts
     team: discounts
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   replicas: 1
   selector:
@@ -29,6 +32,8 @@ spec:
         team: discounts
       annotations:
         ad.datadoghq.com/discounts.logs: '[{"source": "python"}]'
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       volumes:
         - name: apmsocketpath
@@ -37,7 +42,10 @@ spec:
       initContainers:
         - name: wait-for-db
           image: busybox:1.37.0
-          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+          command:
+            - sh
+            - -c
+            - until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;
       containers:
         - name: discounts
           image: ${REGISTRY_URL}/discounts:${SD_TAG}
@@ -69,20 +77,20 @@ spec:
             - name: DD_VERSION
               value: ${DD_VERSION_DISCOUNTS}
             - name: DD_RUNTIME_METRICS_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ALLOCATION_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_TIMELINE_ENABLED
-              value: "true"
+              value: 'true'
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: 128Mi
+              cpu: 100m
             limits:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: 256Mi
+              cpu: 200m
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog

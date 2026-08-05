@@ -17,7 +17,10 @@ metadata:
   labels:
     tags.datadoghq.com/env: ${DD_ENV}
     tags.datadoghq.com/service: store-db
-    tags.datadoghq.com/version: "15.0"
+    tags.datadoghq.com/version: '15.0'
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   serviceName: postgres
   replicas: 1
@@ -30,16 +33,13 @@ spec:
         app: postgres
         tags.datadoghq.com/env: ${DD_ENV}
         tags.datadoghq.com/service: store-db
-        tags.datadoghq.com/version: "15.0"
+        tags.datadoghq.com/version: '15.0'
       annotations:
-        ad.datadoghq.com/postgres.logs: |
-          [{
-            "source": "postgresql",
-            "service": "store-db",
-            "auto_multi_line_detection": true,
-            "path": "/var/log/pg_log_shared/postgresql-*.json",
-            "type": "file"
-          }]
+        ad.datadoghq.com/postgres.logs: "[{\n  \"source\": \"postgresql\",\n  \"service\"\
+          : \"store-db\",\n  \"auto_multi_line_detection\": true,\n  \"path\": \"\
+          /var/log/pg_log_shared/postgresql-*.json\",\n  \"type\": \"file\"\n}]\n"
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       containers:
         - name: postgres
@@ -73,7 +73,8 @@ spec:
     - metadata:
         name: postgres-data
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
             storage: 10Gi

@@ -17,6 +17,9 @@ metadata:
   labels:
     app: store-frontend-api
     team: frontend
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   replicas: 1
   selector:
@@ -28,7 +31,10 @@ spec:
         app: store-frontend-api
         team: frontend
       annotations:
-        ad.datadoghq.com/frontend.logs: '[{"source": "nodejs", "auto_multi_line_detection": true}]'
+        ad.datadoghq.com/frontend.logs: '[{"source": "nodejs", "auto_multi_line_detection":
+          true}]'
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       volumes:
         - name: apmsocketpath
@@ -40,13 +46,19 @@ spec:
       initContainers:
         - name: wait-for-backend
           image: busybox:1.37.0
-          command: ['sh', '-c', 'until nc -z backend 4000; do echo waiting for backend; sleep 2; done;']
+          command:
+            - sh
+            - -c
+            - until nc -z backend 4000; do echo waiting for backend; sleep 2; done;
       containers:
         - name: frontend
           image: ${REGISTRY_URL}/frontend:${SD_TAG}
           ports:
             - containerPort: 3000
-          command: ["npm", "run", "prod"]
+          command:
+            - npm
+            - run
+            - prod
           env:
             - name: NEXT_PUBLIC_ADS_ROUTE
               valueFrom:
@@ -121,21 +133,21 @@ spec:
                   name: storedog-config
                   key: NEXT_PUBLIC_DD_VERSION_FRONTEND
             - name: DD_RUNTIME_METRICS_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_ALLOCATION_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_PROFILING_TIMELINE_ENABLED
-              value: "true"
+              value: 'true'
             - name: DD_TRACE_AGENT_URL
-              value: "unix:///var/run/datadog/apm.socket"
+              value: unix:///var/run/datadog/apm.socket
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
+              memory: 256Mi
+              cpu: 100m
             limits:
-              memory: "2Gi"
+              memory: 2Gi
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog

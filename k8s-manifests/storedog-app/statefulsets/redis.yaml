@@ -18,7 +18,10 @@ metadata:
     app: redis
     team: database
     tags.datadoghq.com/service: redis
-    tags.datadoghq.com/version: "6.2"
+    tags.datadoghq.com/version: '6.2'
+  annotations:
+    tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+    tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
 spec:
   serviceName: redis
   replicas: 1
@@ -31,16 +34,13 @@ spec:
         app: redis
         team: database
         tags.datadoghq.com/service: redis
-        tags.datadoghq.com/version: "6.2"
+        tags.datadoghq.com/version: '6.2'
       annotations:
         ad.datadoghq.com/redis.logs: '[{"source": "redis"}]'
-        ad.datadoghq.com/redis.checks: |
-          {
-            "redisdb": {
-            "init_config": {},
-            "instances": [{"host":"%%host%%", "port":6379}]
-            }
-          }
+        ad.datadoghq.com/redis.checks: "{\n  \"redisdb\": {\n  \"init_config\": {},\n\
+          \  \"instances\": [{\"host\":\"%%host%%\", \"port\":6379}]\n  }\n}\n"
+        tags.datadoghq.com/git.repository_url: https://github.com/Norawit2907/DataDog-Poc.git
+        tags.datadoghq.com/git.commit.sha: c7634b395439fd79b3a74a69797b49d2f310067c
     spec:
       containers:
         - name: redis
@@ -55,7 +55,8 @@ spec:
     - metadata:
         name: redis-data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
             storage: 1Gi
