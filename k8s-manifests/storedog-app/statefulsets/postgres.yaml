@@ -8,15 +8,14 @@ spec:
       name: postgres
   clusterIP: None
   selector:
-    app: store-db
+    app: postgres
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
   labels:
-    app: store-db
-    team: database
+    tags.datadoghq.com/env: ${DD_ENV}
     tags.datadoghq.com/service: store-db
     tags.datadoghq.com/version: "15.0"
 spec:
@@ -24,23 +23,23 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: store-db
+      app: postgres
   template:
     metadata:
       labels:
-        app: store-db
-        team: database
+        app: postgres
+        tags.datadoghq.com/env: ${DD_ENV}
         tags.datadoghq.com/service: store-db
         tags.datadoghq.com/version: "15.0"
       annotations:
-        ad.datadoghq.com/postgres.logs: '[{"source": "postgresql", "auto_multi_line_detection": true}]'
-        ad.datadoghq.com/postgres.checks: |
-          {
-            "postgres": {
-            "init_config": {},
-            "instances": [{"host":"%%host%%", "port":5432, "username":"datadog", "password":"datadog"}]
-            }
-          }
+        ad.datadoghq.com/postgres.logs: |
+          [{
+            "source": "postgresql",
+            "service": "store-db",
+            "auto_multi_line_detection": true,
+            "path": "/var/log/pg_log_shared/postgresql-*.json",
+            "type": "file"
+          }]
     spec:
       containers:
         - name: postgres
@@ -49,6 +48,8 @@ spec:
             - containerPort: 5432
               name: postgres
           env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
             - name: POSTGRES_USER
               valueFrom:
                 configMapKeyRef:
@@ -62,20 +63,17 @@ spec:
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
-            - name: postgres-logs
+            - name: shared-pg-logs
               mountPath: /var/log/pg_log
+      volumes:
+        - name: shared-pg-logs
+          persistentVolumeClaim:
+            claimName: shared-pg-logs
   volumeClaimTemplates:
     - metadata:
         name: postgres-data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
             storage: 10Gi
-    - metadata:
-        name: postgres-logs
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi

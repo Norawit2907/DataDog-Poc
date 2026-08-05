@@ -4,6 +4,9 @@ metadata:
   name: datadog
 spec:
   global:
+    secretBackend:
+      command: "/readsecret_multiple_providers.sh"
+      enableGlobalPermissions: true
     clusterName: storedog-k8s
     site: datadoghq.com
     kubelet:
@@ -35,54 +38,66 @@ spec:
     #   containerImage:
     #     enabled: true
   override:
-    # Deploy the Datadog agent to the control plane nodes.
-    # Used to monitor pods running on the control plane nodes.
-    # This is required for etcd integration.
     nodeAgent:
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-      env:
-        - name: DD_CLOUD_PROVIDER_METADATA
-          value: "[]"
       containers:
         agent:
           volumeMounts:
-            - name: etcd-certs # Used for etcd integration
+            - name: shared-pg-logs # For Postgres log collection
+              mountPath: /var/log/pg_log_shared
               readOnly: true
-              mountPath: /host/etc/kubernetes/pki/etcd
-            - name: disable-etcd-autoconf # Used for etcd integration
-              mountPath: /etc/datadog-agent/conf.d/etcd.d
-            # Used for audit logs
-            # - name: klogpath
-            #   readOnly: true
-            #   mountPath: /var/log/kubernetes
+          env:
+            - name: DD_IGNORE_AUTOCONF
+              value: "etcd kube_controller_manager kube_scheduler"
       volumes:
-        - name: etcd-certs # Used for etcd integration
-          hostPath:
-            path: /etc/kubernetes/pki/etcd
-        - name: disable-etcd-autoconf
-          emptyDir: {}
-        # Used for audit logs
-        # - name: klogpath
-        #   hostPath:
-        #     path: /var/log/kubernetes
+        - name: shared-pg-logs # For Postgres log collection
+          persistentVolumeClaim:
+            claimName: shared-pg-logs
+    clusterAgent:
       extraConfd:
-        configDataMap: # Integration configurations
-          etcd.yaml: |- # etcd integration
-            ad_identifiers:
-              - etcd
+        configDataMap:
+          postgres.yaml: |- # Postgres cluster check for DBM
+            cluster_check: true
             init_config:
             instances:
-              - prometheus_url: https://%%host%%:2379/metrics
-                tls_ca_cert: /host/etc/kubernetes/pki/etcd/ca.crt
-                tls_cert: /host/etc/kubernetes/pki/etcd/server.crt
-                tls_private_key: /host/etc/kubernetes/pki/etcd/server.key
-          # Send audit logs to Datadog
-          # kube_audit.yaml: |-
-          #   logs:
-          #     - type: file
-          #       path: /var/log/kubernetes/apiserver/audit.log
-          #       service: kube-apiserver-audit
-          #       source: kubernetes.audit
+              - dbm: true
+                host: postgres
+                port: 5432
+                username: ENC[k8s_secret@default/storedog-secrets/POSTGRES_INTEGRATION_USER]
+                password: ENC[k8s_secret@default/storedog-secrets/POSTGRES_INTEGRATION_PASSWORD]
+                tags:
+                  - env:${DD_ENV}
+                  - service:store-db
+                relations:
+                  - relation_name: advertisement
+                  - relation_name: discount
+                  - relation_name: items
+                  - relation_name: preorder_items
+                  - relation_name: influencer
+                query_samples:
+                  enabled: true
+                  explain_parameterized_queries: true
+                max_relations: 400
+                collect_function_metrics: true
+                collection_interval: 1
+                collect_schemas:
+                  enabled: true
+                collect_settings:
+                  enabled: true
+              - dbm: true
+                host: postgres
+                port: 5432
+                username: ENC[k8s_secret@default/storedog-secrets/POSTGRES_INTEGRATION_USER]
+                password: ENC[k8s_secret@default/storedog-secrets/POSTGRES_INTEGRATION_PASSWORD]
+                dbname: storedog_db
+                relations:
+                  - relation_regex: spree_.*
+                query_samples:
+                  enabled: true
+                  explain_parameterized_queries: true
+                max_relations: 400
+                collect_function_metrics: true
+                collection_interval: 1
+                collect_schemas:
+                  enabled: true
+                collect_settings:
+                  enabled: true

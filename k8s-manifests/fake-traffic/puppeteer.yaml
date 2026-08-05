@@ -23,7 +23,7 @@ spec:
           env:
             - name: STOREDOG_URL
               # Change namespace as needed
-              value: "http://service-proxy.storedog.svc.cluster.local"
+              value: "http://service-proxy.default.svc.cluster.local"
             - name: PUPPETEER_TIMEOUT
               value: "30000"
             - name: SKIP_SESSION_CLOSE
